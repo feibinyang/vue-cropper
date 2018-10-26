@@ -37,7 +37,7 @@ export default {
     name: 'cropper',
     model: {
         prop: 'clipData',
-        event: 'updateData'
+        event: 'update'
     },
     props: {
         url: String,
@@ -66,7 +66,9 @@ export default {
             cropWidth: 0,
             cropHeight: 0,
             translateX: 0,
-            translateY: 0
+            translateY: 0,
+            naturalWidth: 0,
+            naturalHeight: 0
         };
     },
     computed: {
@@ -80,12 +82,15 @@ export default {
             this.setSize();
         }
     },
-    created() {
+    async created() {
         this.setSize();
         document.addEventListener('mousemove',
             (this.cropping = bind(this.cropping, this)), false);
         document.addEventListener('mouseup',
             (this.cropEnd = bind(this.cropEnd, this)), false);
+        if (!this.naturalWidth || !this.naturalHeight) {
+            await this.getNatureSize();
+        }
     },
     destroyed() {
         document.removeEventListener('mousemove', this.cropping, false);
@@ -104,6 +109,22 @@ export default {
             }
             this.translateX = (this.width - this.cropWidth) / 2;
             this.translateY = (this.height - this.cropHeight) / 2;
+        },
+        getNatureSize() {
+            return new Promise((resolve) => {
+                let image = document.createElement('img');
+                image.onload = () => {
+                    image.onload = image.onerror = null;
+                    this.naturalWidth = image.naturalWidth || this.width;
+                    this.naturalHeight = image.naturalHeight || this.height;
+                    resolve();
+                };
+                image.onerror = () => {
+                    image.onload = image.onerror = null;
+                    resolve();
+                };
+                image.src = this.url;
+            });
         },
         cropStart(e) {
             let cropElement = e.target || e.srcElement;
@@ -282,7 +303,20 @@ export default {
             this.translateY = top;
         },
         cropEnd() {
+            this.update();
             this.action = this.pageX = this.pageY = null;
+        },
+        update() {
+            let width = this.cropWidth * this.naturalWidth / this.width;
+            let height = this.localRatio === 0
+                ? this.cropHeight * this.naturalHeight / this.height
+                : width / this.localRatio;
+            this.$emit('update', {
+                x: this.translateX * this.naturalWidth / this.width,
+                y: this.translateY * this.naturalHeight / this.height,
+                width,
+                height
+            });
         }
     }
 };

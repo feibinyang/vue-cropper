@@ -3,7 +3,8 @@
     <img alt="Vue logo" src="./assets/logo.png">
     <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
     <Cropper ref="cropper" url="http://i3.baidu.com/it/u=3841678517,475667367&fm=207"
-        :width="400" :height="400" :ratio="1/1" :area=".5" :clip-data="{}" />
+        :width="400" :height="400" :ratio="0" :area=".9" v-model="clipData" />
+    <div>{{clipData}}</div>
   </div>
 </template>
 
@@ -16,6 +17,9 @@ export default {
   components: {
     // HelloWorld
     Cropper
+  },
+  data() {
+    return {clipData: {}};
   },
   mounted() {
   }
