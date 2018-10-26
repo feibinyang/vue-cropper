@@ -88,9 +88,7 @@ export default {
             (this.cropping = bind(this.cropping, this)), false);
         document.addEventListener('mouseup',
             (this.cropEnd = bind(this.cropEnd, this)), false);
-        if (!this.naturalWidth || !this.naturalHeight) {
-            await this.getNatureSize();
-        }
+        await this.getNatureSize();
     },
     destroyed() {
         document.removeEventListener('mousemove', this.cropping, false);
@@ -121,6 +119,8 @@ export default {
                 };
                 image.onerror = () => {
                     image.onload = image.onerror = null;
+                    this.naturalWidth = this.width;
+                    this.naturalHeight = this.height;
                     resolve();
                 };
                 image.src = this.url;
